@@ -5,7 +5,7 @@ import abi from "./utils/wave.json";
 
 export default function App() {
 
-  const contractAddress = "0x0dF59Af52136fAC191dF8F68CF536cD3b1cFaf04";
+  const contractAddress = "0x760af30EFC885748d4E37fa0820976B6183EaF3D";
     const contractABI = abi.abi;
 const [currAccount, setCurrentAccount] = React.useState("");
 const [count, setCount] = React.useState([]);
@@ -23,15 +23,25 @@ const [allWaves, setAllWaves] = React.useState([]);
 
    Waves.forEach((wave)=>{
    console.log(parseInt(wave.timestamp._hex, 16));
-   
+      console.log("wave",wave);
+
 
      wavesCleaned.push({
      address:wave.waver,
-     timestamp:new Date(parseInt(wave.timestamp._hex, 16)),
+     timestamp:new Date(wave.timestamp * 1000),
      message:wave.message
    })
    })
-   setAllWaves(wavesCleaned);
+   setAllWaves(wavesCleaned)
+
+   WavePortalContract.on("Newwave", (from, timestamp, message) => {
+      console.log("NewWave", from, timestamp, message)
+      setAllWaves(oldArray => [...oldArray, {
+        address: from,
+        timestamp: new Date(timestamp * 1000),
+        message: message
+      }])
+    })
   }
 
   const wave =async () => {
@@ -41,7 +51,7 @@ const [allWaves, setAllWaves] = React.useState([]);
     const WavePortalContract= new ethers.Contract(contractAddress,contractABI, signer);
 
     let text = document.getElementById("inp");
-     const waveTxn = await WavePortalContract.wave(text.value);
+     const waveTxn = await WavePortalContract.wave(text.value, { gasLimit: 300000 });
 
     const newcount = await WavePortalContract.getTotalWaves();
     setCount(newcount);
