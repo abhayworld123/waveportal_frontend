@@ -5,7 +5,7 @@ import abi from "./utils/wave.json";
 
 export default function App() {
 
-  const contractAddress = "0xa295020dD5871Ac9daB64cAC1c6513eA05bc60eF";
+  const contractAddress = "0x0dF59Af52136fAC191dF8F68CF536cD3b1cFaf04";
     const contractABI = abi.abi;
 const [currAccount, setCurrentAccount] = React.useState("");
 const [count, setCount] = React.useState([]);
