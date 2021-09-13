@@ -5,16 +5,43 @@ import abi from "./utils/wave.json";
 
 export default function App() {
 
-  const contractAddress = "0x94361976f0F3EFFFd211f89011Ce93eF1C579155";
+  const contractAddress = "0xa295020dD5871Ac9daB64cAC1c6513eA05bc60eF";
     const contractABI = abi.abi;
 const [currAccount, setCurrentAccount] = React.useState("");
 const [count, setCount] = React.useState([]);
+const [allWaves, setAllWaves] = React.useState([]);
+
+  const getAllWaves =async () => {
+    const provider= new ethers.providers.Web3Provider(window.ethereum);
+    const signer = provider.getSigner();
+  
+    const WavePortalContract= new ethers.Contract(contractAddress,contractABI, signer);
+
+    let Waves = await WavePortalContract.getAllWaves();
+
+    let wavesCleaned = [];
+
+   Waves.forEach((wave)=>{
+   console.log(parseInt(wave.timestamp._hex, 16));
+   
+
+     wavesCleaned.push({
+     address:wave.waver,
+     timestamp:new Date(parseInt(wave.timestamp._hex, 16)),
+     message:wave.message
+   })
+   })
+   setAllWaves(wavesCleaned);
+  }
 
   const wave =async () => {
     const provider= new ethers.providers.Web3Provider(window.ethereum);
     const signer = provider.getSigner();
   
     const WavePortalContract= new ethers.Contract(contractAddress,contractABI, signer);
+
+    let text = document.getElementById("inp");
+     const waveTxn = await WavePortalContract.wave(text.value);
 
     const newcount = await WavePortalContract.getTotalWaves();
     setCount(newcount);
@@ -35,6 +62,8 @@ const [count, setCount] = React.useState([]);
            const account = accounts[0];
            console.log('auhoried account found',account);
          setCurrentAccount(account);  
+
+         getAllWaves();
       }
       else{
         console.log("no authorised log found");
@@ -73,18 +102,35 @@ const [count, setCount] = React.useState([]);
         <div className="bio">
         Welcome to Ab's DApp? Connect your Ethereum wallet and wave at me!
         </div>
-
+        <div>
+        Enter your message here
+   <input id="inp" type = "text"/>
+   </div>
         <button className="waveButton" onClick={wave}>
           Wave at Me
         </button>
 
-         <button className="waveButton" onClick={connectWallet}>
+{currAccount ? null :(<button className="waveButton" onClick={connectWallet}>
           Connect metamask
-        </button>
+        </button>)
+        }
 
         <p>{currAccount}</p>
-           <div>Total waves{count} </div>
+
+         {allWaves.map((wave,index)=>{
+     return(
+       <div class key={index} style={{backgroundColor:"OldLace", marginTop:"16px",padding:"8px"}}>
+       <div>Address: {wave.address}</div>
+       <div>Time: {wave.timestamp.toString()}</div>
+       <div>Message: {wave.message}</div>
+       </div>
+     )
+   })} 
+
+    
       </div>
+
+   
     </div>
   );
 }
